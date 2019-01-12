@@ -57,7 +57,7 @@ This process could be set up as a CronJob to periodically sync your CronJob task
 	for _, b := range strings.Split(strings.Trim(*buckets, " "), ",") {
 
 		schedule := getParamStoreValue(ssmsvc, fmt.Sprintf("%s/%s/%s", taskKey, b, "schedule"))
-		enabled := getParamStoreValue(ssmsvc, fmt.Sprintf("%s/%s/%s", taskKey, b, "enables"))
+		enabled := getParamStoreValue(ssmsvc, fmt.Sprintf("%s/%s/%s", taskKey, b, "enabled"))
 
 		if enabled {
 			cj := CronJob{

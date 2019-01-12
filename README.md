@@ -37,7 +37,8 @@ This process could be set up as a CronJob to periodically sync your CronJob task
 		panic(err.Error())
 	}
 
-	// Verbose logging enabled
+	// Create Taskmaster Client 
+	// with Verbose logging enabled
 	taskmaster := NewTaskmaster(
 		&Options{
 			Debug: true,

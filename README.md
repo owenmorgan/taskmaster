@@ -84,3 +84,7 @@ This process could be set up as a CronJob to periodically sync your CronJob task
 		panic(err.Error())
 	}
 
+
+# TODO
+* Add ability to allow Taskmaster to manage the optimal sheduling for CronJobs
+* Add ability to remove any prevously defined CronJobs

@@ -1,21 +1,14 @@
 package taskmaster
 
 import (
-	"fmt"
-	"os"
-	"strings"
 	"testing"
 
 	"github.com/AlekSi/pointer"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/stretchr/testify/assert"
 	batchv1 "k8s.io/api/batch/v1"
 	"k8s.io/api/batch/v1beta1"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/rest"
 )
 
 func TestKubernetesCronJobToCronJob(t *testing.T) {
@@ -170,88 +163,4 @@ func TestSyncCronJob(t *testing.T) {
 	assert.Len(t, k8sClient.getCronJobs(), 1)
 	assert.Equal(t, cjs[k8sClient.cronJobKey(&tmcj)].Schedule, "*/10 * * * *")
 
-}
-
-func Testetest(t *testing.T) {
-
-	taskName := os.Getenv("TASK_NAME")
-	env := os.Getenv("ENV")
-	awsRegion := os.Getenv("AWS_REGION")
-	imageVersion := os.Getenv("IMAGE_VERSION")
-
-	fmt.Printf("Debug:  Syncing Task %s in Environment %s\n", taskName, env)
-	fmt.Printf("Debug:  AWS Region Set to %s\n", awsRegion)
-	fmt.Printf("Debug:  Syncing Version %s\n", imageVersion)
-
-	// Create AWS Parameter Store Client
-	sess, err := session.NewSessionWithOptions(session.Options{
-		Config:            aws.Config{Region: aws.String(awsRegion)},
-		SharedConfigState: session.SharedConfigEnable,
-	})
-	if err != nil {
-		panic(err.Error())
-	}
-	ssmsvc := ssm.New(sess, aws.NewConfig().WithRegion(awsRegion))
-
-	// Create Kubernetes Client
-	k8sConfig, err := rest.InClusterConfig()
-	if err != nil {
-		panic(err.Error())
-	}
-
-	k8sClient, err := NewKubernetesClient(k8sConfig)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	// Verbose logging
-	taskmaster := NewTaskmaster(
-		&Options{
-			Debug: true,
-		},
-		k8sClient,
-	)
-
-	taskKey := fmt.Sprintf("/%s/%s", env, taskName)
-
-	namespace := getParamStoreValue(ssmsvc, fmt.Sprintf("%s/%s", taskKey, "namespace"))
-	image := getParamStoreValue(ssmsvc, fmt.Sprintf("%s/%s", taskKey, "image"))
-	buckets := getParamStoreValue(ssmsvc, fmt.Sprintf("%s/%s", taskKey, "buckets"))
-
-	cjs := []CronJob{}
-
-	for _, b := range strings.Split(strings.Trim(*buckets, " "), ",") {
-
-		schedule := getParamStoreValue(ssmsvc, fmt.Sprintf("%s/%s/%s", taskKey, b, "schedule"))
-
-		cj := CronJob{
-			Name:              fmt.Sprintf("%s-%s", taskName, b),
-			Namespace:         *namespace,
-			Taskname:          taskName,
-			Image:             fmt.Sprintf("%s:%s", *image, imageVersion),
-			Schedule:          *schedule,
-			Args:              []string{"ls"},
-			Env:               map[string]string{"ENV": env, "TESTVAR": "TESTVAL"},
-			ConcurrencyPolicy: CronConcurrencyPolicyForbid,
-			RestartPolicy:     CronRestartPolicyNever,
-		}
-
-		cjs = append(cjs, cj)
-	}
-
-	err = taskmaster.Sync(cjs, taskName)
-	if err != nil {
-		panic(err.Error())
-	}
-
-}
-
-func getParamStoreValue(ssmsvc *ssm.SSM, key string) *string {
-	param, err := ssmsvc.GetParameter(&ssm.GetParameterInput{
-		Name: &key,
-	})
-	if err != nil {
-		panic(err.Error())
-	}
-	return param.Parameter.Value
 }

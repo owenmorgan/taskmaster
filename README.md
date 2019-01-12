@@ -79,6 +79,7 @@ This process could be set up as a CronJob to periodically sync your CronJob task
 		cjs = append(cjs, cj)
 	}
 
+	// Sync the CronJobs into Kubernetes
 	err = taskmaster.Sync(cjs, taskName)
 	if err != nil {
 		panic(err.Error())

@@ -60,7 +60,7 @@ This process could be set up as a CronJob to periodically sync your CronJob task
 		schedule := getParamStoreValue(ssmsvc, fmt.Sprintf("%s/%s/%s", taskKey, b, "schedule"))
 		enabled := getParamStoreValue(ssmsvc, fmt.Sprintf("%s/%s/%s", taskKey, b, "enabled"))
 
-		if enabled {
+		if enabled == "true" {
 			cj := CronJob{
 				Name:              fmt.Sprintf("%s-%s", taskName, b),
 				Namespace:         *namespace,

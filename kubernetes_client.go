@@ -1,6 +1,7 @@
 package taskmaster
 
 import (
+	"k8s.io/api/batch/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -49,7 +50,8 @@ func (k8s KubernetesClient) ListCronJobs(namespace string, lbls map[string]strin
 
 // GetCronJob -
 func (k8s KubernetesClient) GetCronJob(namespace, name string) (cj *CronJob, err error) {
-	kcj, err := k8s.kubernetes.BatchV1beta1().CronJobs(namespace).Get(name, metav1.GetOptions{})
+	kcj := &v1beta1.CronJob{}
+	kcj, err = k8s.kubernetes.BatchV1beta1().CronJobs(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
 		return
 	}

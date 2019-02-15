@@ -70,6 +70,9 @@ func (k8s KubernetesClient) UpdateCronJob(cj *CronJob) (err error) {
 // CreateOrUpdateCronJob -
 func (k8s KubernetesClient) CreateOrUpdateCronJob(cj *CronJob) (err error) {
 	cjc, err := k8s.GetCronJob(cj.Namespace, cj.Name)
+	if err != nil {
+		panic(err.Error())
+	}
 	exists := cjc.Name != "" && err == nil
 	if exists {
 		err = k8s.UpdateCronJob(cj)
